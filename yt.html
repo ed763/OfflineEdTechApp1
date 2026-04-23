@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Offline Audiobook Reader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #141e30;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    textarea {
+      width: 90%;
+      height: 120px;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #00c6ff;
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Offline Audiobook Hybrid Reader</h1>
+  <textarea id="noteInput" placeholder="Type or paste your text here..."></textarea><br>
+  <button onclick="startReading()">Read Aloud</button>
+
+  <script>
+    const availableWords = ['hello', 'my', 'name', 'is', 'noa']; // Add more as you record them
+
+    function playSound(filename, callback) {
+      const audio = new Audio(`sounds/${filename}.mp3`);
+      audio.onended = callback;
+      audio.play();
+    }
+
+    function startReading() {
+      const text = document.getElementById('noteInput').value.toLowerCase();
+      const words = text.split(/\s+/);
+      let wordIndex = 0;
+
+      function playNextWord() {
+        if (wordIndex < words.length) {
+          let currentWord = words[wordIndex];
+          if (availableWords.includes(currentWord)) {
+            // Play full word sound
+            playSound(currentWord, () => {
+              wordIndex++;
+              playNextWord();
+            });
+          } else {
+            // Play letter by letter
+            let letterIndex = 0;
+            function playNextLetter() {
+              if (letterIndex < currentWord.length) {
+                let letter = currentWord[letterIndex];
+                if (letter.match(/[a-z]/)) {
+                  playSound(letter, playNextLetter);
+                } else {
+                  playNextLetter(); // Skip unknown characters
+                }
+                letterIndex++;
+              } else {
+                wordIndex++;
+                playNextWord();
+              }
+            }
+            playNextLetter();
+          }
+        }
+      }
+
+      playNextWord();
+    }
+  </script>
+
+</body>
+</html>

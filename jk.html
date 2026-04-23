@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comprehensive Learning App</title>
+  <style>
+    /* Keep all previous CSS styles here (from previous versions) */:root {
+      --bg-gradient: linear-gradient(135deg, #a8edea, #fed6e3);
+      --header-gradient: linear-gradient(to right, #2b3a42, #4e5d6c);
+      --card-bg: rgba(255, 255, 255, 0.15);
+      --text-color: #333;
+      --footer-bg: linear-gradient(to right, #2b3a42, #4e5d6c);
+    }
+
+    body.dark {
+      --bg-gradient: linear-gradient(135deg, #1a1a1a, #333);
+      --header-gradient: linear-gradient(to right, #111, #222);
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --text-color: #eee;
+      --footer-bg: linear-gradient(to right, #111, #222);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-gradient);
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      overflow-x: hidden;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+
+    .loader {
+      border: 8px solid rgba(255,255,255,0.3);
+      border-top: 8px solid white;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    header {
+      background: var(--header-gradient);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    .greeting {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 20px;
+      padding: 8px 15px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      padding: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .grid-item {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .grid-item::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.3), transparent 60%);
+      transform: rotate(25deg);
+      transition: opacity 0.6s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .grid-item:hover::before {
+      opacity: 1;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .emoji {
+      font-size: 60px;
+      margin-bottom: 20px;
+      animation: pop 1.5s infinite alternate;
+    }
+
+    @keyframes pop {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+
+    footer {
+      background: var(--footer-bg);
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 16px;
+      margin-top: 50px;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ripple Effect */
+    a .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      background: rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: floatUp 10s linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* Floating Chat Bot */
+    .chatbot {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 60px;
+      height: 60px;
+      background: #4e5d6c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 100;
+      transition: background 0.3s;
+    }
+
+    .chatbot:hover {
+      background: #2b3a42;
+    }
+
+    .chatbot-icon {
+      color: white;
+      font-size: 30px;
+    }
+
+    /* Quote Popup */
+    .quote-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(255,255,255,0.9);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 9998;
+      transition: transform 0.5s ease;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .quote-popup.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Task Reminder Popup */
+    .reminder-popup {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.95);
+      padding: 15px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 9999;
+      font-size: 14px;
+      animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* To-Do List Panel */
+    .todo-panel {
+      position: fixed;
+      right: 20px;
+      top: 80px;
+      width: 250px;
+      background: rgba(255,255,255,0.95);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      z-index: 9998;
+    }
+
+    .todo-panel h3 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .todo-item input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    .progress-bar {
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 10px;
+      margin-top: 10px;
+    }
+
+    .progress {
+      background: #4caf50;
+      height: 100%;
+      width: 0;
+      transition: width 0.5s ease;
+    }
+
+    /* Daily Streak */
+    .streak {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: gold;
+      color: #333;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Links Grid */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      padding: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .grid-item {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      transition: all 0.4s ease;
+      cursor: pointer;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    .emoji {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Reminder Popup -->
+  <div class="reminder-popup" id="reminder-popup">
+    📅 Don't forget to complete today's quiz!
+  </div>
+
+  <!-- To-Do List Panel -->
+  <div class="todo-panel">
+    <h3>Today's Tasks</h3>
+    <div class="todo-item"><input type="checkbox" onchange="updateProgress()"> Read 1 chapter</div>
+    <div class="todo-item"><input type="checkbox" onchange="updateProgress()"> Solve 5 questions</div>
+    <div class="todo-item"><input type="checkbox" onchange="updateProgress()"> Watch a tutorial</div>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+  </div>
+
+  <!-- Daily Streak -->
+  <div class="streak" id="streak">🔥 Streak: 3 Days</div>
+
+  <div class="grid-container">
+    <a href="un.html" class="grid-item"><div class="emoji">📘</div>Study Notepad</a>
+    <a href="h.html" class="grid-item"><div class="emoji">📝</div>Question & Summary Generator</a>
+    <a href="b.html" class="grid-item"><div class="emoji">⚙️</div>MindMap</a>
+    <a href="rh.html" class="grid-item"><div class="emoji">🌐</div>Translator</a>
+    <a href="mm.html" class="grid-item"><div class="emoji">👩‍🏫🧑‍🏫</div>Group Study</a>
+    <a href="q.html" class="grid-item"><div class="emoji">💬</div>Chat AI</a>
+    <a href="m.html" class="grid-item"><div class="emoji">🎙️</div>Audio to Notes</a>
+    <a href="wee.html" class="grid-item"><div class="emoji">🎥</div>Motivation Videos</a>
+    <a href="j.html" class="grid-item"><div class="emoji">▶️</div>Video</a>
+    <a href="13.html" class="grid-item"><div class="emoji">🎮</div>Memory Game</a>
+    <a href="t.html" class="grid-item"><div class="emoji">ℹ️</div>About App</a>
+  </div>
+
+  <script>
+    // Auto hide reminder after 5 seconds
+    setTimeout(() => {
+      document.getElementById('reminder-popup').style.display = 'none';
+    }, 5000);
+
+    // Update To-Do Progress Bar
+    function updateProgress() {
+      const total = document.querySelectorAll('.todo-item input').length;
+      const completed = document.querySelectorAll('.todo-item input:checked').length;
+      const percent = (completed / total) * 100;
+      document.getElementById('progress').style.width = percent + '%';
+    }
+
+    // Daily Streak Counter (Simulated)
+    let streakCount = 3;
+    function incrementStreak() {
+      streakCount++;
+      document.getElementById('streak').innerText = '🔥 Streak: ' + streakCount + ' Days';
+    }
+    setInterval(incrementStreak, 10000);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Mind Map + 3D Models with Sub-Branches</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+  textarea, select, button { width: 100%; padding: 10px; margin-top: 10px; font-size: 16px; border-radius: 6px; }
+  button { background: #3aafa9; color: white; border: none; cursor: pointer; }
+  button:hover { background: #2b7a78; }
+  .container { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+  .mindmap-area { position: relative; width: 600px; height: 500px; background: white; border-radius: 10px; overflow: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+  .node { position: absolute; padding: 10px 15px; background: #3aafa9; color: white; border-radius: 8px; cursor: pointer; text-align: center; max-width: 160px; }
+  .line { position: absolute; height: 2px; background: #555; transform-origin: left center; }
+  .description-box { width: 300px; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.15); font-size: 14px; display: none; }
+  .description-box h3 { margin-top: 0; color: #2b7a78; }
+</style>
+</head>
+<body>
+
+<h2>AI Mind Map + 3D Models with Sub-Branches</h2>
+<textarea id="fullNote" placeholder="Write or paste your full notes here..."></textarea>
+<button onclick="generateMindMap()">Generate Mind Map + Sub-Branches</button>
+
+<div class="container">
+  <div>
+    <h3>Mind Map</h3>
+    <div class="mindmap-area" id="mindmapArea"></div>
+  </div>
+
+  <div class="description-box" id="descriptionBox">
+    <h3 id="descTitle">Topic</h3>
+    <p id="descContent"></p>
+  </div>
+</div>
+
+<script>
+const stopWords = ['the','is','and','of','to','in','a','with','for','on','an','at','by','this','that','it','as','from','be','are','was','were'];
+
+function generateMindMap() {
+  const note = document.getElementById('fullNote').value.trim();
+  if (!note) return alert('Please enter your note.');
+
+  const mindmapArea = document.getElementById('mindmapArea');
+  mindmapArea.innerHTML = '';
+  document.getElementById('descriptionBox').style.display = 'none';
+
+  const wordFreq = {};
+  const sentences = note.match(/[^.!?]+[.!?]?/g) || [note];
+
+  sentences.forEach(sentence => {
+    const words = sentence.toLowerCase().match(/\b\w+\b/g);
+    if (words) {
+      words.forEach(word => {
+        if (!stopWords.includes(word)) {
+          if (!wordFreq[word]) wordFreq[word] = { count: 0, sentences: [] };
+          wordFreq[word].count++;
+          wordFreq[word].sentences.push(sentence.trim());
+        }
+      });
+    }
+  });
+
+  const sortedWords = Object.keys(wordFreq).sort((a,b) => wordFreq[b].count - wordFreq[a].count).slice(0, 5);
+
+  const centerX = mindmapArea.offsetWidth / 2;
+  const centerY = mindmapArea.offsetHeight / 2;
+
+  const mainNode = createNode('Main', centerX - 60, centerY - 30);
+  mindmapArea.appendChild(mainNode);
+
+  const radius = 180;
+  const angleStep = (2 * Math.PI) / sortedWords.length;
+
+  sortedWords.forEach((topic, i) => {
+    const angle = i * angleStep;
+    const x = centerX + radius * Math.cos(angle) - 60;
+    const y = centerY + radius * Math.sin(angle) - 30;
+    const node = createNode(topic, x, y);
+    mindmapArea.appendChild(node);
+    connectNodes(mainNode, node, mindmapArea);
+
+    node.addEventListener('click', () => showDescription(topic, wordFreq[topic].sentences.join(' ')));
+
+    // Sub-branches for each topic
+    const subRadius = 100;
+    const subAngleStep = (2 * Math.PI) / 3;
+    const subtopics = wordFreq[topic].sentences.slice(0, 3);
+
+    subtopics.forEach((sub, j) => {
+      const subAngle = j * subAngleStep;
+      const sx = x + subRadius * Math.cos(subAngle) - 40;
+      const sy = y + subRadius * Math.sin(subAngle) - 20;
+      const subNode = createNode('Detail ' + (j+1), sx, sy);
+      mindmapArea.appendChild(subNode);
+      connectNodes(node, subNode, mindmapArea);
+      subNode.addEventListener('click', () => showDescription('Detail', sub));
+    });
+  });
+}
+
+function createNode(text, left, top) {
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.style.left = left + 'px';
+  node.style.top = top + 'px';
+  node.textContent = text;
+  return node;
+}
+
+function connectNodes(n1, n2, container) {
+  const r1 = n1.getBoundingClientRect();
+  const r2 = n2.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const x1 = r1.left + r1.width/2 - containerRect.left;
+  const y1 = r1.top + r1.height/2 - containerRect.top;
+  const x2 = r2.left + r2.width/2 - containerRect.left;
+  const y2 = r2.top + r2.height/2 - containerRect.top;
+
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+  const line = document.createElement('div');
+  line.className = 'line';
+  line.style.width = length + 'px';
+  line.style.left = x1 + 'px';
+  line.style.top = y1 + 'px';
+  line.style.transform = `rotate(${angle}deg)`;
+  container.appendChild(line);
+}
+
+function showDescription(title, content) {
+  document.getElementById('descTitle').textContent = title;
+  document.getElementById('descContent').textContent = content;
+  document.getElementById('descriptionBox').style.display = 'block';
+}
+</script>
+
+</body>
+</html>

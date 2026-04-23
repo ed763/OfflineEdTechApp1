@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Shared Notes, Files & Voice</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      margin: 0 auto;
+      padding: 20px;
+      max-width: 700px;
+    }
+    h2 {
+      text-align: center;
+      color: #2a71d0;
+    }
+    textarea, input[type='file'] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #2a71d0;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #1d539e;
+    }
+    #codeOutput {
+      width: 100%;
+      height: 100px;
+      font-family: monospace;
+      resize: vertical;
+      margin-top: 15px;
+    }
+    audio {
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📒 Offline Shared Notes + File + Voice Share</h2>
+
+<label>Your Username:</label>
+<input type="text" id="usernameInput" placeholder="Enter your name">
+
+<label>Paste Shared Code (Optional):</label>
+<textarea id="codeInput" placeholder="Paste code here to sync notes, files & voice"></textarea>
+<button onclick="loadData()">Load Data</button>
+
+<label>Shared Notes:</label>
+<textarea id="notesArea" placeholder="Write or edit shared notes here..."></textarea>
+
+<label>Attach Small File (TXT, JPG, PDF as base64):</label>
+<input type="file" id="fileInput" accept=".txt,.jpg,.jpeg,.png,.pdf" />
+
+<label>Record Voice Note:</label>
+<button onclick="startRecording()">Start Recording</button>
+<button onclick="stopRecording()">Stop Recording</button>
+<audio id="voicePlayer" controls></audio>
+
+<button onclick="generateCode()">Generate Share Code</button>
+
+<label>Generated Code to Share:</label>
+<textarea id="codeOutput" readonly></textarea>
+
+<div id="fileDisplay"></div>
+
+<script>
+  let sharedNotes = '';
+  let attachedFile = '';
+  let attachedFileName = '';
+  let voiceNote = '';
+  let mediaRecorder;
+  let audioChunks = [];
+
+  function loadData() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const code = document.getElementById('codeInput').value.trim();
+
+    if (!username) {
+      alert('Please enter your username first.');
+      return;
+    }
+
+    if (code) {
+      try {
+        const decoded = atob(code);
+        const data = JSON.parse(decoded);
+        sharedNotes = data.notes || '';
+        attachedFile = data.file || '';
+        attachedFileName = data.fileName || '';
+        voiceNote = data.voice || '';
+
+        document.getElementById('notesArea').value = sharedNotes;
+        if (attachedFile && attachedFileName) {
+          displayFile(attachedFileName, attachedFile);
+        }
+        if (voiceNote) {
+          document.getElementById('voicePlayer').src = voiceNote;
+        }
+
+        alert(`✅ Data loaded for "${username}". You can now collaborate.`);
+      } catch {
+        alert('❌ Invalid code format!');
+      }
+    } else {
+      sharedNotes = '';
+      attachedFile = '';
+      attachedFileName = '';
+      voiceNote = '';
+      document.getElementById('notesArea').value = '';
+      document.getElementById('fileDisplay').innerHTML = '';
+      document.getElementById('voicePlayer').src = '';
+      alert(`📝 Hello ${username}, start your new shared notes.`);
+    }
+  }
+
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        attachedFile = evt.target.result.split(',')[1];
+        attachedFileName = file.name;
+        displayFile(attachedFileName, attachedFile);
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  function displayFile(name, base64Data) {
+    const fileDisplay = document.getElementById('fileDisplay');
+    let preview = `<p><strong>Attached File:</strong> ${name}</p>`;
+    if (name.endsWith('.jpg') || name.endsWith('.jpeg') || name.endsWith('.png')) {
+      preview += `<img src="data:image/jpeg;base64,${base64Data}" style="max-width:100%; border-radius:10px;" />`;
+    } else if (name.endsWith('.pdf')) {
+      preview += `<p>[PDF file attached]</p>`;
+    } else if (name.endsWith('.txt')) {
+      preview += `<p>[Text file attached]</p>`;
+    }
+    fileDisplay.innerHTML = preview;
+  }
+
+  function startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+      };
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          voiceNote = e.target.result;
+          document.getElementById('voicePlayer').src = voiceNote;
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+      mediaRecorder.start();
+      alert('🎙️ Recording started...');
+    }).catch(err => {
+      alert('Microphone access denied or not supported.');
+    });
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      alert('🛑 Recording stopped.');
+    }
+  }
+
+  function generateCode() {
+    const notes = document.getElementById('notesArea').value.trim();
+    const data = {
+      notes: notes,
+      file: attachedFile,
+      fileName: attachedFileName,
+      voice: voiceNote
+    };
+
+    const code = btoa(JSON.stringify(data));
+    document.getElementById('codeOutput').value = code;
+    alert('📤 Code generated! Share it with your group to sync notes, files & voice.');
+  }
+</script>
+
+</body>
+</html>

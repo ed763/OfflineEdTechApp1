@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Study & Workout Quiz</title><style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #c3dbf9, #e0f0ff);
+      color: #1e293b;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #2563eb;
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+    }
+    select, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border-radius: 8px;
+      border: 1.5px solid #3b82f6;
+      font-size: 1rem;
+      box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+    select:focus, textarea:focus, button:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 8px #93c5fd;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #1e40af;
+    }
+    button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+    .question-box {
+      background: white;
+      padding: 15px;
+      margin: 15px 0;
+      border-left: 6px solid #2563eb;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgb(37 99 235 / 0.2);
+    }
+    .option {
+      margin: 6px 6px 6px 0;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #93c5fd;
+      color: #1e293b;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .option:hover:not(:disabled) {
+      background-color: #3b82f6;
+      color: white;
+    }
+    .correct {
+      background-color: #4ade80 !important;
+      color: #14532d !important;
+      font-weight: 700;
+    }
+    .wrong {
+      background-color: #f87171 !important;
+      color: #7f1d1d !important;
+      font-weight: 700;
+    }
+    .summary, .review {
+      background: #e0e7ff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 6px rgb(99 102 241 / 0.3);
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+    #fillBarContainer {
+      width: 100%;
+      height: 14px;
+      background-color: #cbd5e1;
+      border-radius: 7px;
+      margin-top: 20px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.1);
+    }
+    #fillBar {
+      height: 100%;
+      width: 0;
+      background-color: #2563eb;
+      border-radius: 7px;
+      transition: width 0.6s ease;
+    }
+    #rank {
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-top: 10px;
+      text-align: center;
+      color: #2563eb;
+    }
+    #gameArea {
+      margin-top: 25px;
+      text-align: center;
+    }
+    #coinBtn {
+      background-color: #facc15;
+      border: none;
+      border-radius: 50%;
+      width: 70px;
+      height: 70px;
+      font-size: 2.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgb(250 204 21 / 0.7);
+      transition: transform 0.2s ease;
+      user-select: none;
+    }
+    #coinBtn:active {
+      transform: scale(0.9);
+    }
+    #coinCount {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a16207;
+      margin-top: 10px;
+    }
+  <style>
+    /* [STYLES UNCHANGED - OMITTED FOR SPACE] *//* General Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Body Styling */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f0f8ff;
+  padding: 20px;
+  color: #333;
+}
+
+/* Header */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  color: #0b3d91;
+}
+
+/* Upload Section */
+.upload-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  text-align: center;
+}
+
+.upload-container label {
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.upload-container input[type="file"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.upload-container button {
+  background-color: #0b3d91;
+  color: #fff;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-container button:hover {
+  background-color: #083075;
+}
+
+/* Results */
+.result-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.result-container h2 {
+  color: #0b3d91;
+  margin-bottom: 15px;
+}
+
+.result-box {
+  background: #eef5ff;
+  padding: 15px;
+  border-radius: 10px;
+  line-height: 1.6;
+  font-size: 1rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 400px;
+}
+
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #0b3d91;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+  </style>
+</head>
+<body>
+  <h1>Smart Study + Workout Quiz</h1>
+
+  <label for="subjectSelect">Select Subject:</label>
+  <select id="subjectSelect">
+    <option value="" disabled selected>-- Choose Subject --</option>
+    <option value="general">General</option>
+    <option value="math">Math</option>
+    <option value="physics">Physics</option>
+    <option value="chemistry">Chemistry</option>
+    <option value="biology">Biology</option>
+    <option value="english">English</option>
+  </select>
+
+  <label for="noteInput">Paste your study note here:</label>
+  <textarea id="noteInput" rows="8" placeholder="Enter notes relevant to selected subject..."></textarea>
+
+  <label for="modeSelect">Select Quiz Mode:</label>
+  <select id="modeSelect">
+    <option value="choose">Choose Form (MCQ)</option>
+    <option value="workout">Workout Form (Write Answer)</option>
+  </select>
+
+  <button id="generateBtn" onclick="generateQuiz()" disabled>Generate Quiz</button>
+
+  <div id="fillBarContainer"><div id="fillBar"></div></div>
+  <div id="rank"></div>
+
+  <h3>🔍 Summary</h3>
+  <div id="summary" class="summary"></div>
+
+  <h3>🧠 Smart Quiz Area</h3>
+  <div id="quizArea"></div>
+
+  <h3>💪 Workout Questions</h3>
+  <div id="workoutQuestions"></div>
+  <button id="submitWorkout" onclick="checkWorkoutAnswers()" style="display:none;">Submit Workout Answers</button>
+  <div id="workoutScore" class="summary"></div>
+  <div id="workoutReview" class="review"></div>
+
+  <h3>🔁 Review Incorrect Answers</h3>
+  <div id="review" class="review"></div>
+
+  <div id="gameArea"></div>
+
+<script>
+let wrongAnswers = [];
+let score = 0;
+
+const subjectSelect = document.getElementById('subjectSelect');
+const noteInput = document.getElementById('noteInput');
+const generateBtn = document.getElementById('generateBtn');
+
+function checkEnableButton() {
+  generateBtn.disabled = !subjectSelect.value || !noteInput.value.trim();
+}
+subjectSelect.addEventListener('change', checkEnableButton);
+noteInput.addEventListener('input', checkEnableButton);
+
+function extractWords(text) {
+  return [...new Set(text.toLowerCase().match(/\b\w{4,}\b/g) || [])];
+}
+
+function getSentences(text) {
+  return text.match(/[^.!?]+[.!?]/g) || [text];
+}
+
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function generateMCQ(sentence, noteWords) {
+  const keywords = sentence.match(/\b\w{5,}\b/g);
+  if (!keywords || keywords.length === 0) return null;
+  const correct = keywords[Math.floor(Math.random() * keywords.length)];
+  const distractors = noteWords.filter(w => w !== correct);
+  shuffleArray(distractors);
+  const options = [correct, ...distractors.slice(0, 3)];
+  shuffleArray(options);
+
+  const whTypes = ['What', 'Which', 'Fill'];
+  const whType = whTypes[Math.floor(Math.random() * whTypes.length)];
+
+  const qText = sentence.replace(new RegExp(`\\b${correct}\\b`, 'g'), '_____');
+  const prefix = whType === 'Fill' ? '' : `${whType} is `;
+
+  return {
+    q: prefix + qText,
+    options,
+    correct
+  };
+}
+
+function generateWorkout() {
+  const text = noteInput.value;
+  const lines = getSentences(text);
+  const container = document.getElementById("workoutQuestions");
+  const submitBtn = document.getElementById("submitWorkout");
+  container.innerHTML = "";
+  submitBtn.style.display = "none";
+  document.getElementById("workoutScore").innerHTML = "";
+  document.getElementById("workoutReview").innerHTML = "";
+
+  const workoutLines = lines.filter(line => /\d+/.test(line));
+  if (workoutLines.length === 0) {
+    container.innerHTML = "<i>No valid workout questions found in the notes.</i>";
+    return;
+  }
+
+  workoutLines.forEach((line, i) => {
+    const numbers = [...line.matchAll(/\d+(\.\d+)?/g)];
+    if (!numbers.length) return;
+
+    const originalNum = numbers[0][0];
+    const randomChange = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 10 + 1);
+    const newNum = (parseFloat(originalNum) + randomChange).toFixed(2);
+    const questionText = line.replace(originalNum, newNum);
+    const hint = lines[Math.max(0, i - 1)] + " " + lines[Math.min(i + 1, lines.length - 1)];
+
+    const box = document.createElement("div");
+    box.className = "question-box";
+    box.innerHTML = `
+      <b>Q${i + 1} (Workout):</b> ${questionText}
+      <textarea data-answer="${line}" rows="2" placeholder="Write your answer..."></textarea>
+      <br><button onclick="this.nextElementSibling.style.display='block'">💡 Show Hint</button>
+      <div style="display:none;margin-top:5px;color:#475569;"><i>${hint}</i></div>
+    `;
+    container.appendChild(box);
+  });
+
+  submitBtn.style.display = "block";
+}
+
+function generateQuiz() {
+  document.getElementById("quizArea").innerHTML = "";
+  document.getElementById("review").innerHTML = "";
+  document.getElementById("workoutQuestions").innerHTML = "";
+  document.getElementById("fillBar").style.width = "0%";
+  document.getElementById("rank").innerHTML = "";
+  document.getElementById("gameArea").innerHTML = "";
+  wrongAnswers = [];
+  score = 0;
+
+  const notes = noteInput.value.trim();
+  const mode = document.getElementById("modeSelect").value;
+  if (!notes) {
+    alert("Please paste some notes!");
+    return;
+  }
+
+  const noteWords = extractWords(notes);
+  const sentences = getSentences(notes);
+  summarizeNotes(notes);
+
+  if (mode === "workout") {
+    generateWorkout();
+    return;
+  }
+
+  let questions = sentences.map(s => generateMCQ(s, noteWords)).filter(Boolean);
+  shuffleArray(questions);
+
+  if (questions.length === 0) {
+    alert("Not enough data to generate questions.");
+    return;
+  }
+
+  let answeredCount = 0;
+
+  questions.forEach((qObj, idx) => {
+    const box = document.createElement("div");
+    box.className = "question-box";
+    box.innerHTML = `<b>Q${idx + 1}:</b> ${qObj.q}<br/>`;
+
+    qObj.options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (btn.disabled) return;
+        if (opt === qObj.correct) {
+          btn.classList.add("correct");
+          score++;
+        } else {
+          btn.classList.add("wrong");
+          wrongAnswers.push({ q: qObj.q, correct: qObj.correct });
+        }
+        const siblings = btn.parentNode.querySelectorAll("button.option");
+        siblings.forEach(b => b.disabled = true);
+
+        answeredCount++;
+        updateProgress(score, answeredCount, questions.length);
+
+        if (answeredCount === questions.length) {
+          showReview();
+          showFinalRank(score, questions.length);
+          if ((score / questions.length) * 100 >= 90) {
+            showCoinGame();
+          }
+        }
+      };
+      box.appendChild(btn);
+    });
+    document.getElementById("quizArea").appendChild(box);
+  });
+}
+
+function checkWorkoutAnswers() {
+  const answers = document.querySelectorAll('#workoutQuestions textarea');
+  let correct = 0;
+  const wrong = [];
+
+  answers.forEach((area, i) => {
+    const user = area.value.trim().replace(/\s+/g, ' ');
+    const expected = area.dataset.answer.trim().replace(/\s+/g, ' ');
+    if (user.toLowerCase() === expected.toLowerCase()) {
+      area.style.border = "2px solid #22c55e";
+      correct++;
+    } else {
+      area.style.border = "2px solid #ef4444";
+      wrong.push({ i: i + 1, correct: expected, user });
+    }
+    area.disabled = true;
+  });
+
+  const percent = (correct / answers.length) * 100;
+  document.getElementById("workoutScore").innerHTML = `
+    <b>Workout Score:</b> ${correct} / ${answers.length} (${percent.toFixed(1)}%)<br>
+    ${percent === 100 ? "🏆 Perfect!" : percent > 75 ? "🎉 Great job!" : "📘 Keep improving!"}
+  `;
+
+  const review = document.getElementById("workoutReview");
+  review.innerHTML = wrong.length
+    ? `<b>Incorrect Answers:</b><br>${wrong.map(w =>
+      `<b>Q${w.i}</b><br>✅ ${w.correct}<br>❌ ${w.user || "<i>Blank</i>"}<br>`
+    ).join("<br>")}`
+    : "<b>All answers correct. 💯</b>";
+}
+
+function updateProgress(score, total, max) {
+  const percent = (total / max) * 100;
+  document.getElementById("fillBar").style.width = percent + "%";
+}
+
+function showFinalRank(score, max) {
+  const percent = (score / max) * 100;
+  const rankElem = document.getElementById("rank");
+  let rankText = "";
+
+  if (percent === 100) rankText = "🏆 Perfect! Expert Level";
+  else if (percent >= 90) rankText = "🎉 Excellent! Advanced Level";
+  else if (percent >= 75) rankText = "👍 Good! Intermediate Level";
+  else if (percent >= 50) rankText = "🙂 Fair! Beginner Level";
+  else rankText = "😕 Keep Practicing!";
+
+  rankElem.textContent = `Rank: ${rankText} (${score} / ${max})`;
+}
+
+function showReview() {
+  const reviewElem = document.getElementById("review");
+  if (wrongAnswers.length === 0) {
+    reviewElem.innerHTML = "<b>All correct! Great job! 🎉</b>";
+    return;
+  }
+
+  reviewElem.innerHTML = "<h4>Review Incorrect Answers:</h4>";
+  wrongAnswers.forEach((item, i) => {
+    const div = document.createElement("div");
+    div.innerHTML = `<b>Q${i + 1}:</b> ${item.q} <br><b>✔ Correct Answer:</b> ${item.correct}`;
+    reviewElem.appendChild(div);
+  });
+}
+
+function summarizeNotes(text) {
+  const sentences = getSentences(text);
+  const summary = sentences.slice(0, 3).map(s => {
+    const keyword = s.match(/\b\w{5,}\b/);
+    return keyword ? `<b>${keyword[0]}</b>: ${s}` : s;
+  }).join("<br/>");
+  document.getElementById('summary').innerHTML = summary;
+}
+
+function showCoinGame() {
+  const gameArea = document.getElementById("gameArea");
+  gameArea.innerHTML = `
+    <h3>🎮 Bonus: Collect 10 coins to celebrate your score!</h3>
+    <button id="coinBtn" title="Click to collect coin 🪙">🪙</button>
+    <div>Coins collected: <span id="coinCount">0</span></div>
+  `;
+
+  let coins = 0;
+  const coinBtn = document.getElementById("coinBtn");
+  const coinCount = document.getElementById("coinCount");
+
+  coinBtn.addEventListener("click", () => {
+    coins++;
+    coinCount.textContent = coins;
+    coinBtn.style.transform = 'scale(1.2)';
+    setTimeout(() => coinBtn.style.transform = '', 150);
+
+    if (coins >= 10) {
+      alert("🎊 Congrats! You collected all 10 coins!");
+      coinBtn.disabled = true;
+      coinBtn.textContent = "✔️ Done!";
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Video Note App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: white;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    textarea, input[type="text"], input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    video {
+      width: 100%;
+      margin: 10px 0;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: paleturquoise;
+      color: black;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .note-box, .store-box {
+      background: #f1f1f1;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .store-area {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Choose Your Role</h2>
+    <button onclick="setRole('teacher')">📤File</button>
+    <button onclick="setRole('student')">📥Store</button>
+
+    <!-- Teacher Section -->
+    <div id="teacher" style="display:none">
+      <h3>Upload Teaching Material</h3>
+      <input type="file" id="videoFile" accept="video/*">
+      <textarea id="noteInput" placeholder="Enter teacher note here..."></textarea>
+      <button onclick="uploadContent()">Save📦</button>
+    </div>
+
+    <!-- Student Section -->
+    <div id="student" style="display:none">
+      <h3>View Material</h3>
+      <div id="contentArea"></div>
+      <textarea id="studentNote" placeholder="Write your note here..."></textarea>
+      <button onclick="saveStudentNote()">save</button>
+
+      <!-- Store Area for Student Notes -->
+      <div class="store-area">
+        <h4>My Saved Notes</h4>
+        <div id="savedNotesArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setRole(role) {
+      document.getElementById("teacher").style.display = role === "teacher" ? "block" : "none";
+      document.getElementById("student").style.display = role === "student" ? "block" : "none";
+      if (role === "student") {
+        loadContent();
+        loadStudentNotes();
+      }
+    }
+
+    function uploadContent() {
+      const fileInput = document.getElementById("videoFile");
+      const note = document.getElementById("noteInput").value;
+
+      if (!fileInput.files[0]) {
+        alert("Please choose a video file.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const videoURL = URL.createObjectURL(file);
+
+      const material = { link: videoURL, note };
+      localStorage.setItem('material', JSON.stringify(material));
+      alert("Material saved successfully!");
+    }
+
+    function loadContent() {
+      const content = JSON.parse(localStorage.getItem('material'));
+      const contentArea = document.getElementById("contentArea");
+
+      if (!content) {
+        contentArea.innerHTML = "<p>No content uploaded yet.</p>";
+        return;
+      }
+
+      contentArea.innerHTML = `
+        <video controls src="${content.link}"></video>
+        <div class="note-box">${content.note}</div>
+      `;
+    }
+
+    function saveStudentNote() {
+      const note = document.getElementById("studentNote").value.trim();
+      if (!note) {
+        alert("Please write a note before saving.");
+        return;
+      }
+
+      let notes = JSON.parse(localStorage.getItem('studentNotes')) || [];
+      notes.push(note);
+      localStorage.setItem('studentNotes', JSON.stringify(notes));
+      document.getElementById("studentNote").value = "";
+      loadStudentNotes();
+    }
+
+    function loadStudentNotes() {
+      const notes = JSON.parse(localStorage.getItem('studentNotes')) || [];
+      const savedNotesArea = document.getElementById("savedNotesArea");
+      savedNotesArea.innerHTML = "";
+
+      if (notes.length === 0) {
+        savedNotesArea.innerHTML = "<p>No notes saved yet.</p>";
+        return;
+      }
+
+      notes.forEach((note, index) => {
+        const div = document.createElement("div");
+        div.className = "store-box";
+        div.innerText = `Note ${index + 1}: ${note}`;
+        savedNotesArea.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>

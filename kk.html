@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Chat PRO+ Manual Sync</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0 auto; padding: 20px; max-width: 800px; color: #333; }
+    h2 { text-align: center; color: #2a71d0; }
+    .tabs { display: flex; margin-top: 20px; }
+    .tab { flex: 1; padding: 10px; text-align: center; background: #e0e0e0; cursor: pointer; border-radius: 10px 10px 0 0; }
+    .tab.active { background: white; font-weight: bold; color: #2a71d0; }
+    .tab-content { background: white; padding: 15px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; }
+    .tab-content.active { display: block; }
+    label { font-weight: bold; display: block; margin: 15px 0 5px; }
+    input, textarea, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; margin-bottom: 10px; }
+    button { background-color: #2a71d0; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    .chat-area, .notes-area, .media-area { background: #fff; border-radius: 12px; padding: 15px; max-height: 300px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 20px; }
+    .chat-bubble { padding: 10px 15px; margin-bottom: 10px; border-radius: 15px; position: relative; max-width: 80%; word-wrap: break-word; }
+    .user-message { background-color: #d1e7dd; margin-left: auto; border-bottom-right-radius: 0; }
+    .other-message { background-color: #f8d7da; margin-right: auto; border-bottom-left-radius: 0; }
+    .timestamp { font-size: 12px; color: #888; text-align: right; }
+  </style>
+</head>
+<body>
+  <h2>📚 Offline Chat PRO+ Manual Sync</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('chatTab')">Chat</div>
+    <div class="tab" onclick="switchTab('notesTab')">Notes</div>
+    <div class="tab" onclick="switchTab('mediaTab')">Media</div>
+    <div class="tab" onclick="switchTab('syncTab')">Sync</div>
+  </div>
+
+  <div class="tab-content active" id="chatTab">
+    <label>Room Code:</label>
+    <input type="text" id="roomCode" placeholder="Enter Room Code">
+    <label>Your Username:</label>
+    <input type="text" id="username" placeholder="Enter Username">
+    <label>Message:</label>
+    <textarea id="messageInput" placeholder="Type your message..."></textarea>
+    <button onclick="sendMessage()">Send</button>
+    <div class="chat-area" id="chatArea"></div>
+  </div>
+
+  <div class="tab-content" id="notesTab">
+    <label>Shared Notes:</label>
+    <textarea id="sharedNotes" rows="10"></textarea>
+  </div>
+
+  <div class="tab-content" id="mediaTab">
+    <label>Upload Media (Image/Audio/PDF):</label>
+    <input type="file" id="mediaInput">
+    <button onclick="uploadMedia()">Add Media</button>
+    <div class="media-area" id="mediaArea"></div>
+  </div>
+
+  <div class="tab-content" id="syncTab">
+    <button onclick="exportSync()">Export Sync File</button>
+    <button onclick="document.getElementById('syncImport').click()">Import Sync File</button>
+    <input type="file" id="syncImport" style="display:none" onchange="importSync(event)">
+  </div>
+
+  <script>
+    let chatHistory = [];
+    let mediaFiles = [];
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function sendMessage() {
+      const username = document.getElementById('username').value.trim();
+      const roomCode = document.getElementById('roomCode').value.trim();
+      const message = document.getElementById('messageInput').value.trim();
+      if (!username || !roomCode || !message) return alert('Fill in all fields.');
+      chatHistory.push({ username, message, timestamp: new Date().toLocaleString() });
+      document.getElementById('messageInput').value = '';
+      renderChat(username);
+    }
+
+    function renderChat(currentUser) {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.innerHTML = '';
+      chatHistory.forEach(msg => {
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble ' + (msg.username === currentUser ? 'user-message' : 'other-message');
+        bubble.innerHTML = `<div><strong>${msg.username}</strong></div><div>${msg.message}</div><div class='timestamp'>${msg.timestamp}</div>`;
+        chatArea.appendChild(bubble);
+      });
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function uploadMedia() {
+      const fileInput = document.getElementById('mediaInput');
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mediaFiles.push({ name: file.name, type: file.type, content: e.target.result });
+        renderMedia();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderMedia() {
+      const mediaArea = document.getElementById('mediaArea');
+      mediaArea.innerHTML = '';
+      mediaFiles.forEach(file => {
+        let element;
+        if (file.type.startsWith('image')) {
+          element = `<img src='${file.content}' style='max-width:100%;'>`;
+        } else if (file.type.startsWith('audio')) {
+          element = `<audio controls src='${file.content}'></audio>`;
+        } else if (file.type === 'application/pdf') {
+          element = `<iframe src='${file.content}' width='100%' height='200'></iframe>`;
+        } else {
+          element = `<a href='${file.content}' download='${file.name}'>Download ${file.name}</a>`;
+        }
+        mediaArea.innerHTML += `<div class='media-item'>${element}</div>`;
+      });
+    }
+
+    function exportSync() {
+      const data = {
+        roomCode: document.getElementById('roomCode').value.trim(),
+        chatHistory, mediaFiles, sharedNotes: document.getElementById('sharedNotes').value
+      };
+      const dataStr = JSON.stringify(data);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'syncfile.sync';
+      a.click();
+    }
+
+    function importSync(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        const currentRoom = document.getElementById('roomCode').value.trim();
+        if (data.roomCode !== currentRoom) return alert('Room Code mismatch.');
+        chatHistory = data.chatHistory || [];
+        mediaFiles = data.mediaFiles || [];
+        document.getElementById('sharedNotes').value = data.sharedNotes || '';
+        renderChat(document.getElementById('username').value);
+        renderMedia();
+        alert('Sync imported successfully!');
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>

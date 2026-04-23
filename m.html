@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Audio to Notes App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+      background-color: #2e86de;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1b4f72;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎤 Audio to Smart Notes</h1>
+
+  <button onclick="startRecording()">🎙️ Start Recording</button>
+  <textarea id="transcript" placeholder="Transcript will appear here..."></textarea>
+  
+  <button onclick="summarizeText()">📝 Summarize & Generate Questions</button>
+  <textarea id="summary" placeholder="Smart Summary will appear here..."></textarea>
+  <textarea id="questions" placeholder="Multiple Choice Questions will appear here..."></textarea>
+
+  <script>
+    function startRecording() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.start();
+      alert("🎤 Speak now...");
+
+      recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        document.getElementById("transcript").value = text;
+      };
+
+      recognition.onerror = function(event) {
+        alert("❌ Error: " + event.error);
+      };
+    }
+
+    function summarizeText() {
+      const fullText = document.getElementById("transcript").value;
+      const sentences = fullText.match(/[^\.!\?]+[\.!\?]+/g) || [fullText];
+
+      // Generate smart summary: 1st, middle, last sentence
+      const mid = Math.floor(sentences.length / 2);
+      const summaryParts = [
+        "📌 Introduction: " + (sentences[0] || ''),
+        "📌 Main Idea: " + (sentences[mid] || ''),
+        "📌 Conclusion: " + (sentences[sentences.length - 1] || '')
+      ];
+      document.getElementById("summary").value = summaryParts.join("\n\n");
+
+      // Generate simple multiple choice questions (demo logic)
+      const questions = [];
+      if (sentences.length >= 3) {
+        questions.push(
+          "1️⃣ What is the main idea of the discussion?\nA. " + (sentences[0] || '') + "\nB. " + (sentences[mid] || '') + "\nC. " + (sentences[sentences.length - 1] || '') + "\nD. None of the above"
+        );
+        questions.push(
+          "2️⃣ Which part introduces the topic?\nA. " + (sentences[0] || '') + "\nB. " + (sentences[mid] || '') + "\nC. " + (sentences[sentences.length - 1] || '') + "\nD. Not mentioned"
+        );
+        questions.push(
+          "3️⃣ How does the speaker conclude?\nA. " + (sentences[0] || '') + "\nB. " + (sentences[mid] || '') + "\nC. " + (sentences[sentences.length - 1] || '') + "\nD. I don’t know"
+        );
+      } else {
+        questions.push("⚠️ Not enough content to generate questions.");
+      }
+
+      document.getElementById("questions").value = questions.join("\n\n");
+    }
+  </script>
+</body>
+</html>

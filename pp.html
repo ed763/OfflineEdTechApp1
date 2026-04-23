@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Group Study</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fffaf2;
+      padding: 20px;
+      text-align: center;
+    }
+    textarea {
+      width: 90%;
+      height: 100px;
+    }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>👨‍🏫 Offline Group Study</h2>
+  <textarea id="quizInput" placeholder="Paste or write quiz questions here..."></textarea><br>
+  <button onclick="share()">🔗 Generate Share Code</button><br><br>
+  <textarea id="sharedQuiz" readonly placeholder="Share this code with your group..."></textarea>
+
+  <h3>Or Paste a Shared Code:</h3>
+  <textarea id="pasteArea" placeholder="Paste code from friend..."></textarea><br>
+  <button onclick="load()">📥 Load Quiz</button>
+
+  <p id="output"></p>
+
+  <script>
+    function share() {
+      const quiz = document.getElementById("quizInput").value;
+      document.getElementById("sharedQuiz").value = btoa(quiz);
+    }
+
+    function load() {
+      const code = document.getElementById("pasteArea").value;
+      try {
+        const quiz = atob(code);
+        document.getElementById("output").innerText = "📘 Group Quiz:\n" + quiz;
+      } catch {
+        document.getElementById("output").innerText = "Invalid code!";
+      }
+    }
+  </script>
+</body>
+</html>
+ 

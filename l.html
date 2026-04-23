@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offline Study Chat PRO+</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0 auto; padding: 20px; max-width: 800px; color: #333; }
+    h2 { text-align: center; color: #2a71d0; }
+    .tabs { display: flex; margin-top: 20px; }
+    .tab { flex: 1; padding: 10px; text-align: center; background: #e0e0e0; cursor: pointer; border-radius: 10px 10px 0 0; }
+    .tab.active { background: white; font-weight: bold; color: #2a71d0; }
+    .tab-content { background: white; padding: 15px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .hidden { display: none; }
+    label { font-weight: bold; display: block; margin: 15px 0 5px; }
+    input, textarea, select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; margin-bottom: 10px; }
+    button { background-color: #2a71d0; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    button:hover { background-color: #1d539e; }
+    .chat-area, .notes-area, .media-area { background: #fff; border-radius: 12px; padding: 15px; max-height: 350px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 20px; }
+    .chat-bubble { padding: 10px 15px; margin-bottom: 10px; border-radius: 15px; position: relative; max-width: 80%; word-wrap: break-word; }
+    .user-message { background-color: #d1e7dd; margin-left: auto; border-bottom-right-radius: 0; }
+    .other-message { background-color: #f8d7da; margin-right: auto; border-bottom-left-radius: 0; }
+    .username { font-weight: bold; color: #2a9d8f; }
+    .tag { font-size: 14px; color: #555; font-style: italic; }
+    .timestamp { font-size: 12px; color: #888; text-align: right; margin-top: 5px; }
+    .status { font-size: 14px; margin-top: 10px; }
+    #codeOutput { height: 80px; font-family: monospace; resize: vertical; }
+    .member-list { margin-top: 10px; font-size: 14px; }
+    .member-list span { display: inline-block; background: #e1ecf4; padding: 5px 10px; border-radius: 10px; margin: 3px; }
+    .media-item { margin: 10px 0; }
+    audio, img, .doc-link { display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+<h2>📚 Offline Study Chat PRO+</h2>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('chat')">Chat</div>
+  <div class="tab" onclick="switchTab('notes')">Notes</div>
+  <div class="tab" onclick="switchTab('media')">Media</div>
+  <div class="tab" onclick="switchTab('sync')">Sync</div>
+</div>
+<div class="tab-content" id="chatTab">
+  <label>Your Username:</label>
+  <input type="text" id="usernameInput" placeholder="Enter your name" />
+  <label>Paste Shared Code (First Time Only):</label>
+  <textarea id="codeInput" placeholder="Paste code here"></textarea>
+  <button onclick="loadConversation()">Load Conversation</button>
+  <label>Message Type:</label>
+  <select id="tagSelect">
+    <option value="Chat">Chat</option>
+    <option value="Quiz">Quiz</option>
+    <option value="Idea">Idea</option>
+    <option value="Note">Note</option>
+  </select>
+  <label>Write Message:</label>
+  <textarea id="messageInput" rows="2" placeholder="Write your message..."></textarea>
+  <button onclick="addMessage()">Send Message</button>
+  <button onclick="clearMessages()">Clear Messages</button>
+  <div class="chat-area" id="chatArea"></div>
+  <div class="member-list" id="memberList"></div>
+</div>
+<div class="tab-content hidden" id="notesTab">
+  <label>Shared Notes Pad:</label>
+  <textarea id="sharedNotes" rows="10" placeholder="Collaborative notes area..."></textarea>
+  <button onclick="saveNotes()">Save Notes</button>
+</div>
+<div class="tab-content hidden" id="mediaTab">
+  <label>Upload Audio/PDF/Image/DOCX:</label>
+  <input type="file" id="mediaInput" multiple accept="audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*">
+  <button onclick="uploadMedia()">Add to Media</button>
+  <button onclick="recordAudio()">Record Audio</button>
+  <div class="media-area" id="mediaArea"></div>
+</div>
+<div class="tab-content hidden" id="syncTab">
+  <button onclick="generateCode()">Generate Shareable Code</button>
+  <label>Generated Code:</label>
+  <textarea id="codeOutput" readonly></textarea>
+  <div class="status" id="syncStatus"></div>
+</div>
+<script>
+  let allMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+  let currentUser = localStorage.getItem('currentUser') || '';
+  let members = JSON.parse(localStorage.getItem('chatMembers')) || [];
+  let sharedNotes = localStorage.getItem('sharedNotes') || '';
+  let mediaFiles = JSON.parse(localStorage.getItem('mediaFiles')) || [];
+
+  document.getElementById('usernameInput').value = currentUser;
+  document.getElementById('sharedNotes').value = sharedNotes;
+  renderChat();
+  updateMemberList();
+  renderMedia();
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(tab => { if(tab.textContent.includes(tabName)) tab.classList.add('active'); });
+    document.getElementById(tabName + 'Tab').classList.remove('hidden');
+  }
+
+  function loadConversation() {
+    const username = document.getElementById('usernameInput').value.trim();
+    const code = document.getElementById('codeInput').value.trim();
+    if (!username) return alert('Please enter your username.');
+    currentUser = username;
+    localStorage.setItem('currentUser', username);
+    if (code) {
+      try {
+        const decoded = atob(code);
+        const data = JSON.parse(decoded);
+        allMessages = data.messages || [];
+        sharedNotes = data.notes || '';
+        members = Array.from(new Set([...members, ...data.members, username]));
+        mediaFiles = data.media || [];
+        localStorage.setItem('chatMessages', JSON.stringify(allMessages));
+        localStorage.setItem('chatMembers', JSON.stringify(members));
+        localStorage.setItem('sharedNotes', sharedNotes);
+        localStorage.setItem('mediaFiles', JSON.stringify(mediaFiles));
+        document.getElementById('sharedNotes').value = sharedNotes;
+        renderChat();
+        updateMemberList();
+        renderMedia();
+        document.getElementById('syncStatus').textContent = 'Conversation loaded!';
+      } catch {
+        alert('Invalid code!');
+      }
+    } else {
+      if (!members.includes(username)) members.push(username);
+      localStorage.setItem('chatMembers', JSON.stringify(members));
+      updateMemberList();
+    }
+  }
+
+  function addMessage() {
+    const message = document.getElementById('messageInput').value.trim();
+    const tag = document.getElementById('tagSelect').value;
+    if (!message || !currentUser) return alert('Write message and load username.');
+    allMessages.push({ username: currentUser, tag, message, timestamp: new Date().toISOString() });
+    localStorage.setItem('chatMessages', JSON.stringify(allMessages));
+    document.getElementById('messageInput').value = '';
+    renderChat();
+  }
+
+  function clearMessages() {
+    if (confirm('Are you sure you want to clear all messages?')) {
+      allMessages = [];
+      localStorage.setItem('chatMessages', JSON.stringify(allMessages));
+      renderChat();
+    }
+  }
+
+  function renderChat() {
+    const chatArea = document.getElementById('chatArea');
+    chatArea.innerHTML = '';
+    if (allMessages.length === 0) {
+      chatArea.innerHTML = '<p style="text-align:center; color:#777;">No messages yet.</p>';
+      return;
+    }
+    allMessages.forEach(msg => {
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble ' + (msg.username === currentUser ? 'user-message' : 'other-message');
+      bubble.innerHTML = `<div class='username'>👤 ${msg.username}</div>
+                          <div class='tag'>[${msg.tag}]</div>
+                          <div>${msg.message}</div>
+                          <div class='timestamp'>${new Date(msg.timestamp).toLocaleString()}</div>`;
+      chatArea.appendChild(bubble);
+    });
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function uploadMedia() {
+    const files = document.getElementById('mediaInput').files;
+    for (let file of files) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        mediaFiles.push({ name: file.name, type: file.type, content: e.target.result });
+        localStorage.setItem('mediaFiles', JSON.stringify(mediaFiles));
+        renderMedia();
+      };
+      reader.readAsDataURL(file);
+    }
+    document.getElementById('mediaInput').value = '';
+  }
+
+  function recordAudio() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Recording not supported on this device.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks = [];
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          mediaFiles.push({ name: 'Recorded Audio', type: 'audio/webm', content: e.target.result });
+          localStorage.setItem('mediaFiles', JSON.stringify(mediaFiles));
+          renderMedia();
+        };
+        reader.readAsDataURL(blob);
+      };
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 5000); // Record for 5 seconds
+      alert('Recording for 5 seconds...');
+    }).catch(err => alert('Recording failed: ' + err));
+  }
+
+  function renderMedia() {
+    const mediaArea = document.getElementById('mediaArea');
+    mediaArea.innerHTML = '';
+    if (mediaFiles.length === 0) {
+      mediaArea.innerHTML = '<p style="text-align:center; color:#777;">No media files yet.</p>';
+      return;
+    }
+    mediaFiles.forEach(file => {
+      const div = document.createElement('div');
+      div.className = 'media-item';
+      if (file.type.startsWith('audio')) {
+        div.innerHTML = `<b>🎵 ${file.name}</b><audio controls src='${file.content}'></audio>`;
+      } else if (file.type.startsWith('image')) {
+        div.innerHTML = `<b>🖼️ ${file.name}</b><img src='${file.content}' width='100%'>`;
+      } else {
+        div.innerHTML = `<b>📄 ${file.name}</b><a class='doc-link' href='${file.content}' download='${file.name}'>Download</a>`;
+      }
+      mediaArea.appendChild(div);
+    });
+  }
+
+  function generateCode() {
+    const data = { messages: allMessages, members: members, notes: document.getElementById('sharedNotes').value, media: mediaFiles };
+    const code = btoa(JSON.stringify(data));
+    document.getElementById('codeOutput').value = code;
+    document.getElementById('syncStatus').textContent = 'Code generated! Share with others.';
+  }
+
+  function saveNotes() {
+    sharedNotes = document.getElementById('sharedNotes').value;
+    localStorage.setItem('sharedNotes', sharedNotes);
+    alert('Notes saved locally.');
+  }
+
+  function updateMemberList() {
+    const list = document.getElementById('memberList');
+    list.innerHTML = '<b>Members:</b> ' + members.map(name => `<span>${name}</span>`).join(' ');
+  }
+</script>
+</body>
+</html>

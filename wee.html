@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motivational Videos and Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007BFF;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #0056b3;
+            padding: 10px 0;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0 15px;
+            font-size: 1.1em;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #ffdd57;
+        }
+        .section-title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2em;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .video-container, .image-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 320px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+        .video-container:hover, .image-container:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .video-container video, .image-container img {
+            width: 100%;
+            height: auto;
+        }
+        .video-title, .image-title {
+            padding: 15px;
+            text-align: center;
+            background-color: #007BFF;
+            color: white;
+            font-size: 18px;
+        }
+        .video-description, .image-description {
+            padding: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        #modal video {
+            width: 80%;
+            max-width: 800px;
+        }
+        #modal .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #modal .close-btn:hover {
+            background: #0056b3;
+        }
+        footer {
+            background-color: #007BFF;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 20px;
+        }
+        footer p {
+            margin: 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Motivational Videos and Gallery</h1>
+</header>
+
+<nav>
+    <a href="#home" onclick="showSection('home')">Home</a>
+    <a href="#gallery" onclick="showSection('gallery')">Gallery</a>
+    
+</nav>
+
+<section id="home">
+    <h2 class="section-title">Motivational Videos</h2>
+    <div class="container">
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="t.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+         <div class="container">
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="pi.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+        <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+         <div class="container">
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="re.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+        <div class="container">
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="ro.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="ui.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+        <div class="video-container" data-video-src="t.mp4">
+            <div class="video-title">Motivational Speech 1</div>
+            <video controls>
+                <source src="90.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+
+        <div class="video-container" data-video-src="vi.mp4">
+            <div class="video-title">Motivational Speech 2</div>
+            <video controls>
+                <source src="vi.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+              <div class="video-description">An inspiring speech to kickstart your day.</div>
+        </div>
+
+        <div class="video-container" data-video-src="vi.mp4">
+            <div class="video-title">Motivational Speech 3</div>
+            <video controls>
+                <source src="8.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">A powerful talk to keep you motivated.</div>
+        </div>
+
+        <div class="video-container" data-video-src="v.mp4">
+            <div class="video-title">Motivational Speech 4</div>
+            <video controls>
+                <source src="v.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">Words of wisdom to inspire success.</div>
+        </div>
+
+        <div class="video-container" data-video-src="r.mp4">
+            <div class="video-title">Motivational Speech 5</div>
+            <video controls>
+                <source src="r.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="video-description">Encouraging message to fuel your passion.</div>
+        </div>
+    </div>
+</section>
+
+<section id="gallery" class="hidden">
+    <h2 class="section-title">Photo Gallery</h2>
+    <div class="container">
+        <div class="image-container">
+            <div class="image-title">Image 1</div>
+            <img src="p.jpg" alt="Gallery Image 1">
+            <div class="image-description">A beautiful moment captured.</div>
+        </div>
+
+        <div class="image-container">
+            <div class="image-title">Image 2</div>
+            <img src="o.jpg" alt="Gallery Image 2">
+            <div class="image-description">An inspiring scene.</div>
+        </div>
+
+        <div class="image-container">
+            <div class="image-title">Image 3</div>
+            <img src="s.jpg" alt="Gallery Image 3">
+            <div class="image-description">A stunning view.</div>
+        </div>
+
+        <div class="image-container">
+            <div class="image-title">Image 4</div>
+            <img src="q.jpg" alt="Gallery Image 4">
+            <div class="image-description">An amazing snapshot.</div>
+        </div>
+    </div>
+</section>
+
+<div id="modal">
+    <button class="close-btn">&times; Close</button>
+    <video controls></video>
+</div>
+
+
+
+<script>
+    function showSection(sectionId) {
+        document.getElementById('home').classList.add('hidden');
+        document.getElementById('gallery').classList.add('hidden');
+        document.getElementById(sectionId).classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.video-container').forEach(container => {
+        container.addEventListener('click', () => {
+            const videoSrc = container.getAttribute('data-video-src');
+            const modal = document.getElementById('modal');
+            const modalVideo = modal.querySelector('video');
+            modalVideo.src = videoSrc;
+            modal.style.display = 'flex';
+        });
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', () => {
+        const modal = document.getElementById('modal');
+        const modalVideo = modal.querySelector('video');
+        modalVideo.pause();
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        const modal = document.getElementById('modal');
+        if (event.target === modal) {
+            const modalVideo = modal.querySelector('video');
+            modalVideo.pause();
+            modal.style.display = 'none';
+        }
+    });
+
+    // Initially show the home section
+    showSection('home');
+</script>
+
+</body>
+</html>

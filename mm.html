@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ultimate SyncBoard Classroom+</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at top left, #e0f7fa, #e1bee7);
+      margin: 0; padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 {
+      color: #4a148c;
+      text-shadow: 1px 1px 2px #fff;
+      margin-bottom: 20px;
+    }
+    .panel {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 25px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 20px;
+      transition: transform 0.3s ease;
+    }
+    .panel:hover {
+      transform: translateY(-5px);
+    }
+    textarea, input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 15px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    button {
+      background: linear-gradient(to right, #7b1fa2, #512da8);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background: linear-gradient(to right, #512da8, #7b1fa2);
+    }
+    .media-item, .noteDisplay, .feedback, .base-code {
+      background: #ede7f6;
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 15px;
+      animation: fadeIn 0.5s ease;
+    }
+    audio, video, img {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+    #qrcode, #baseCodeDisplay {
+      margin-top: 20px;
+      text-align: center;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<h2>📚 SyncBoard Classroom+ 🚀</h2>
+
+<div class="panel">
+  <select id="roleSelect">
+    <option value="">--Select Role--</option>
+    <option value="Teacher">Teacher</option>
+    <option value="Student">Student</option>
+  </select>
+</div>
+
+<div id="teacherPanel" class="panel" style="display:none;">
+  <h3>👩‍🏫 Teacher Panel</h3>
+  <textarea id="teacherNote" placeholder="Write your note..."></textarea>
+  <button onclick="generateQR()">🔳 Generate QR Code</button>
+  <button onclick="generateBaseCode()">🧩 Generate BaseCode5</button>
+  <input type="file" id="mediaUpload" accept="audio/*,video/*,image/*">
+  <button onclick="uploadMedia()">📤 Upload Media</button>
+  <button onclick="recordAudio()">🎙️ Record Audio (5s)</button>
+  <div id="qrcode"></div>
+  <div id="baseCodeDisplay"></div>
+</div>
+
+<div id="studentPanel" class="panel" style="display:none;">
+  <h3>👨‍🎓 Student Panel</h3>
+  <input type="file" id="qrImageUpload" accept="image/*">
+  <div id="decodedNote">Upload QR code to see notes...</div>
+  <input type="text" id="baseCodeInput" placeholder="Enter BaseCode5">
+  <button onclick="loadBaseCode()">🔍 Load from BaseCode</button>
+  <div id="sharedBoard"></div>
+</div>
+
+<script>
+  let mediaFiles = [];
+  let recordedChunks = [];
+
+  document.getElementById('roleSelect').addEventListener('change', () => {
+    const role = document.getElementById('roleSelect').value;
+    document.getElementById('teacherPanel').style.display = (role === 'Teacher') ? 'block' : 'none';
+    document.getElementById('studentPanel').style.display = (role === 'Student') ? 'block' : 'none';
+  });
+
+  function generateQR() {
+    const note = document.getElementById('teacherNote').value.trim();
+    if (!note) return alert('Write a note first!');
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: note,
+      width: 250,
+      height: 250
+    });
+  }
+
+  function generateBaseCode() {
+    const note = document.getElementById('teacherNote').value.trim();
+    if (!note) return alert('Write a note first!');
+    const baseCode = btoa(unescape(encodeURIComponent(note))).slice(0, 30);
+    document.getElementById('baseCodeDisplay').innerHTML = `<div class='base-code'>BaseCode5: ${baseCode}</div>`;
+    localStorage.setItem('BaseCode5Data', JSON.stringify({ note, mediaFiles }));
+  }
+
+  function loadBaseCode() {
+    const codeInput = document.getElementById('baseCodeInput').value.trim();
+    const storedData = JSON.parse(localStorage.getItem('BaseCode5Data') || '{}');
+    if (storedData.note && codeInput === btoa(unescape(encodeURIComponent(storedData.note))).slice(0, 30)) {
+      let content = `<div class='noteDisplay'>${storedData.note}</div>`;
+      if (storedData.mediaFiles) {
+        storedData.mediaFiles.forEach(media => {
+          if (media.type.startsWith('image')) {
+            content += `<div class='media-item'><b>${media.name}</b><br><img src='${media.content}'></div>`;
+          } else if (media.type.startsWith('audio')) {
+            content += `<div class='media-item'><b>${media.name}</b><br><audio controls src='${media.content}'></audio></div>`;
+          } else if (media.type.startsWith('video')) {
+            content += `<div class='media-item'><b>${media.name}</b><br><video controls src='${media.content}'></video></div>`;
+          }
+        });
+      }
+      document.getElementById('sharedBoard').innerHTML = content;
+    } else {
+      alert('Invalid BaseCode5');
+    }
+  }
+
+  function uploadMedia() {
+    const fileInput = document.getElementById('mediaUpload');
+    const file = fileInput.files[0];
+    if (!file) return alert('Select a media file first!');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      mediaFiles.push({ type: file.type, content: e.target.result, name: file.name });
+      alert('Media Uploaded. Include in BaseCode5.');
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = '';
+  }
+
+  function recordAudio() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Recording not supported.');
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      const recorder = new MediaRecorder(stream);
+      recordedChunks = [];
+      recorder.ondataavailable = e => recordedChunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          mediaFiles.push({ type: 'audio/webm', content: e.target.result, name: 'Recorded Explanation' });
+          alert('Audio Recorded. Include in BaseCode5.');
+        };
+        reader.readAsDataURL(blob);
+      };
+      recorder.start();
+      setTimeout(() => recorder.stop(), 5000);
+      alert('Recording for 5 seconds...');
+    }).catch(err => alert('Recording failed: ' + err));
+  }
+
+  document.getElementById('qrImageUpload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+          document.getElementById('decodedNote').textContent = code.data;
+        } else {
+          document.getElementById('decodedNote').textContent = 'No QR code detected.';
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+
+</body>
+</html>

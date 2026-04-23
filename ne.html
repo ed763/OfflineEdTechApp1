@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Comprehensive Learning App</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #a8edea, #fed6e3);
+      --header-gradient: linear-gradient(to right, #2b3a42, #4e5d6c);
+      --card-bg: rgba(255, 255, 255, 0.15);
+      --text-color: #333;
+      --footer-bg: linear-gradient(to right, #2b3a42, #4e5d6c);
+    }
+
+    body.dark {
+      --bg-gradient: linear-gradient(135deg, #1a1a1a, #333);
+      --header-gradient: linear-gradient(to right, #111, #222);
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --text-color: #eee;
+      --footer-bg: linear-gradient(to right, #111, #222);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-gradient);
+      margin: 0;
+      padding: 0;
+      color: var(--text-color);
+      overflow-x: hidden;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+    }
+
+    .loader {
+      border: 8px solid rgba(255,255,255,0.3);
+      border-top: 8px solid white;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    header {
+      background: var(--header-gradient);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    .greeting {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 20px;
+      padding: 8px 15px;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      padding: 40px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .grid-item {
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .grid-item::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.3), transparent 60%);
+      transform: rotate(25deg);
+      transition: opacity 0.6s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .grid-item:hover::before {
+      opacity: 1;
+    }
+
+    .grid-item:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .emoji {
+      font-size: 60px;
+      margin-bottom: 20px;
+      animation: pop 1.5s infinite alternate;
+    }
+
+    @keyframes pop {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+
+    footer {
+      background: var(--footer-bg);
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 16px;
+      margin-top: 50px;
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 10;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ripple Effect */
+    a .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      background: rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: floatUp 10s linear infinite;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* Floating Chat Bot */
+    .chatbot {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 60px;
+      height: 60px;
+      background: #4e5d6c;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 100;
+      transition: background 0.3s;
+    }
+
+    .chatbot:hover {
+      background: #2b3a42;
+    }
+
+    .chatbot-icon {
+      color: white;
+      font-size: 30px;
+    }
+
+    /* Quote Popup */
+    .quote-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(255,255,255,0.9);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      z-index: 9998;
+      transition: transform 0.5s ease;
+      text-align: center;
+      max-width: 80%;
+    }
+
+    .quote-popup.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Quote Popup -->
+  <div class="quote-popup" id="quote-popup">
+    <div id="quote-text">Stay positive!</div>
+  </div>
+
+  <header>
+    Comprehensive Learning App
+    <button class="toggle-btn" onclick="toggleDarkMode()">Dark Mode</button>
+  </header>
+
+  <div class="greeting" id="greeting">Hi Noa, Ready to Learn? 🌟</div>
+
+  <div class="grid-container">
+    <!-- Your Grid Items -->
+    <!-- (Same as before, omitted for brevity) -->
+  </div>
+
+  <footer>
+    &copy; Comprehensive Learning App
+  </footer>
+
+  <div class="particles"></div>
+
+  <!-- Floating Chatbot Button -->
+  <div class="chatbot" onclick="window.location.href='q.html'">
+    <div class="chatbot-icon">💬</div>
+  </div>
+
+  <script>
+    // Loading Screen Fade Out
+    window.addEventListener('load', () => {
+      const loadingScreen = document.getElementById('loading-screen');
+      const quotePopup = document.getElementById('quote-popup');
+      const quotes = [
+        "Stay positive, work hard, make it happen!",
+        "Every day is a new opportunity to learn.",
+        "Dream big, stay focused, and crush it!",
+        "Believe you can and you're halfway there.",
+        "Success starts with self-discipline."
+      ];
+      const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quote-text').innerText = randomQuote;
+
+      setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        quotePopup.classList.add('show');
+        speakGreeting();
+      }, 1000);
+
+      setTimeout(() => { loadingScreen.style.display = 'none'; }, 1500);
+      setTimeout(() => { quotePopup.classList.remove('show'); }, 4000);
+    });
+
+    // Voice Greeting
+    function speakGreeting() {
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance("Hi Noa, Ready to Learn!");
+        utter.lang = 'en-US';
+        utter.pitch = 1.2;
+        utter.rate = 1;
+        speechSynthesis.speak(utter);
+      }
+    }
+
+    // Ripple Effect
+    document.querySelectorAll('.link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        ripple.style.left = `${e.offsetX}px`;
+        ripple.style.top = `${e.offsetY}px`;
+        this.appendChild(ripple);
+        setTimeout(() => { ripple.remove(); }, 600);
+      });
+    });
+
+    // Particles Generator
+    const particlesContainer = document.querySelector('.particles');
+    const particleCount = 30;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      const size = Math.random() * 10 + 5;
+      particle.classList.add('particle');
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.animationDuration = `${5 + Math.random() * 10}s`;
+      particle.style.animationDelay = `${Math.random() * 10}s`;
+      particlesContainer.appendChild(particle);
+    }
+
+    // Dark Mode Toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+  </script>
+
+</body>
+</html>

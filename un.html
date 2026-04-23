@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Study Notepad with Smart Quiz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .notepad-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .toolbar select,
+    .toolbar input[type="color"],
+    .toolbar button {
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: #007bff;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .toolbar button:hover {
+      background-color: #0056b3;
+    }
+    .editor {
+      width: 100%;
+      min-height: 400px;
+      padding: 20px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #000;
+      outline: none;
+    }
+    .editor.dark-mode {
+      background-color: #2b2b2b;
+      color: #fff;
+      border-color: #444;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    pre.dark-mode {
+      background-color: #3c3c3c;
+    }
+    .quiz-section {
+      margin-top: 30px;
+      padding: 15px;
+      border-top: 2px solid #ddd;
+    }
+    .quiz-section input,
+    .quiz-section button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .quiz-section button {
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    .quiz-section button:hover {
+      background-color: #218838;
+    }
+    #quizResult {
+      margin-top: 10px;
+      font-weight: bold;
+      min-height: 40px;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    .notepad-container.dark-mode {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      border-color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div class="notepad-container" id="notepad">
+  <h1>Study Notepad</h1>
+  <div class="toolbar">
+    <select id="fontSize">
+      <option value="12px">12px</option>
+      <option value="14px">14px</option>
+      <option value="16px" selected>16px</option>
+      <option value="18px">18px</option>
+      <option value="20px">20px</option>
+      <option value="24px">24px</option>
+    </select>
+    <input type="color" id="fontColor" value="#000000" />
+    <input type="color" id="backgroundColor" value="#ffffff" />
+    <button onclick="insertTable()">Table</button>
+    <button onclick="insertCode()">Code</button>
+    <button onclick="insertImage()">Image</button>
+    <button onclick="textAlign('left')">Left</button>
+    <button onclick="textAlign('center')">Center</button>
+    <button onclick="textAlign('right')">Right</button>
+    <button onclick="insertBulletList()">Bullets</button>
+    <button onclick="saveDocument()">💾 Save</button>
+    <button onclick="clearEditor()">🧹 Clear</button>
+    <button onclick="toggleDarkMode()" id="darkToggle">🌙 Dark Mode</button>
+  </div>
+
+  <div
+    id="editor"
+    class="editor"
+    contenteditable="true"
+    ondrop="dropFile(event)"
+    ondragover="allowDrop(event)"
+    spellcheck="true"
+    aria-label="Editable study notes area"
+  ></div>
+
+  <div class="quiz-section">
+    <h3>Quick Self-Test</h3>
+    <input
+      type="text"
+      id="quizQuestion"
+      placeholder="Enter your question here"
+      aria-label="Quiz question input"
+    />
+    <button onclick="checkQuizAnswer()">Check Answer</button>
+    <div id="quizResult" role="region" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+  const editor = document.getElementById("editor");
+  const fontSizeSelector = document.getElementById("fontSize");
+  const fontColorPicker = document.getElementById("fontColor");
+  const backgroundColorPicker = document.getElementById("backgroundColor");
+
+  // Load saved content
+  window.onload = () => {
+    const saved = localStorage.getItem("studyNotes");
+    if (saved) editor.innerHTML = saved;
+  };
+
+  fontSizeSelector.addEventListener("change", () => {
+    document.execCommand("fontSize", false, "7");
+    const fontElements = editor.getElementsByTagName("font");
+    for (let el of fontElements) {
+      if (el.size === "7") {
+        el.removeAttribute("size");
+        el.style.fontSize = fontSizeSelector.value;
+      }
+    }
+  });
+
+  fontColorPicker.addEventListener("change", () => {
+    document.execCommand("foreColor", false, fontColorPicker.value);
+  });
+
+  backgroundColorPicker.addEventListener("change", () => {
+    editor.style.backgroundColor = backgroundColorPicker.value;
+  });
+
+  function insertTable() {
+    const rows = prompt("Number of rows?");
+    const cols = prompt("Number of columns?");
+    if (!rows || !cols) return;
+    let tableHTML = '<table border="1" style="border-collapse: collapse; width: 100%;">';
+    for (let r = 0; r < rows; r++) {
+      tableHTML += "<tr>";
+      for (let c = 0; c < cols; c++) {
+        tableHTML += '<td contenteditable="true" style="padding: 8px; border: 1px solid #ccc;"></td>';
+      }
+      tableHTML += "</tr>";
+    }
+    tableHTML += "</table><br/>";
+    document.execCommand("insertHTML", false, tableHTML);
+  }
+
+  function insertCode() {
+    const codeHTML = '<pre contenteditable="true">Insert your code here</pre><br/>';
+    document.execCommand("insertHTML", false, codeHTML);
+  }
+
+  function insertImage() {
+    const url = prompt("Image URL?");
+    if (url) {
+      const imgHTML = `<img src="${url}" alt="Image" style="max-width: 100%; border-radius: 4px;" />`;
+      document.execCommand("insertHTML", false, imgHTML);
+    }
+  }
+
+  function textAlign(align) {
+    document.execCommand("justify" + align.charAt(0).toUpperCase() + align.slice(1));
+  }
+
+  function insertBulletList() {
+    document.execCommand("insertUnorderedList");
+  }
+
+  function saveDocument() {
+    const content = editor.innerHTML;
+    localStorage.setItem("studyNotes", content);
+    const blob = new Blob([content], { type: "text/html" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "study-notes.html";
+    link.click();
+  }
+
+  function clearEditor() {
+    if (confirm("Clear all notes?")) {
+      editor.innerHTML = "";
+      localStorage.removeItem("studyNotes");
+    }
+  }
+
+  function allowDrop(event) {
+    event.preventDefault();
+  }
+
+  function dropFile(event) {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    if (files.length === 0) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const imgHTML = `<img src="${e.target.result}" alt="Dropped Image" style="max-width: 100%; border-radius: 4px;" />`;
+      document.execCommand("insertHTML", false, imgHTML);
+    };
+    reader.readAsDataURL(files[0]);
+  }
+
+  function checkQuizAnswer() {
+    const question = document.getElementById("quizQuestion").value.trim().toLowerCase();
+    const result = document.getElementById("quizResult");
+
+    if (!question) {
+      result.textContent = "❗ Please enter a question.";
+      result.style.color = "orange";
+      return;
+    }
+
+    // Get all user notes text (split by sentences)
+    const text = editor.innerText || "";
+    const sentences = text.split(/[\.\?\!\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+
+    // Extract keywords from question (filter out small words)
+    const keywords = question.split(/[\s,]+/).filter(word => word.length > 3);
+
+    // Try to find a sentence containing any keyword
+    let answer = null;
+    for (const keyword of keywords) {
+      answer = sentences.find(sentence => sentence.toLowerCase().includes(keyword));
+      if (answer) break;
+    }
+
+    if (answer) {
+      result.textContent = "✅ Answer from your notes: " + answer;
+      result.style.color = "green";
+    } else {
+      result.textContent = "❌ Sorry, no matching answer found in your notes.";
+      result.style.color = "red";
+    }
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+    document.getElementById("notepad").classList.toggle("dark-mode");
+    editor.classList.toggle("dark-mode");
+    document.querySelectorAll("pre").forEach(pre => pre.classList.toggle("dark-mode"));
+    const toggleBtn = document.getElementById("darkToggle");
+    toggleBtn.textContent = document.body.classList.contains("dark-mode")
+      ? "☀️ Light Mode"
+      : "🌙 Dark Mode";
+  }
+</script>
+
+</body>
+</html>
